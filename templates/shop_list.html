@@ -1,0 +1,136 @@
+<html>
+
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style type="text/css">
+  h1 {background-color:#808080;
+			font-weight:bold;
+			padding:35px;
+			color:white;
+			font-family: Comic Sans MS;}
+  .button {background-color: #808080; color:white;
+    border-radius: 2px;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    padding: 14px 40px;
+    -webkit-transition-duration: 0.4s;
+    transition-duration: 0.4s;
+  }
+  .button:hover {
+    background-color: #000000;
+    color: white;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+  }
+  .card {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+  text-align: center;
+  font-family: arial;
+}
+
+.title {
+  color: grey;
+  font-size: 18px;
+}
+
+.abc {
+    background-color: #808080; color:white;
+    border-radius: 2px;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    padding: 14px 40px;
+    -webkit-transition-duration: 0.4s;
+    transition-duration: 0.4s;
+}
+.abc:hover{
+
+}
+
+
+
+#xyz{
+  position: absolute;
+  top:60px;
+  left:1200px;
+}
+
+.checked {
+    color: orange;
+}
+
+.unchecked {
+    color: black;
+}
+
+</style>
+
+<script> 
+    function hover(index){
+        for(var i=1;i <= 5; i++){
+            if(i<=index){
+                document.getElementById("r" + i).setAttribute('class', "fa fa-star checked");
+            }
+            else{
+                document.getElementById("r" + i).setAttribute('class',"fa fa-star unchecked");
+            }
+        }
+    }
+    function setRating(index){
+        alert(index)
+        document.ratings.shopRating.value = index;
+        document.ratings.submit();
+    }
+</script>
+
+</head>
+
+<body>
+    <h1>Find me Coffee</h1>
+    <br />
+    <div id="xyz"><form action="/return_main_user" method="post">
+        <input type="text" name="cust_username" style="display:none;" value={{ by }} />
+         <input type="submit" value="Go back" />
+    </form>
+    </div>
+    <div class="card">
+        {% for shop in shops %}
+            <h1>{{ shop['shop_name'] }}</h1>
+            <p class="title">{{ shop['shop_address'] }}</p>
+            <p class="title">Open Time : {{ shop['shop_openTime'] }} - {{ shop['shop_closeTime'] }} hrs</p>
+            <p class="title">Contact - {{ shop['mail'] }}</p>
+            <p class="rating">
+            <form  name="ratings" id="ratings" action="/setRating">
+                <span class="fa fa-star unchecked" name="r1" id="r1" onmouseover="hover(1)" onclick="setRating(1)"> </span>
+                <span class="fa fa-star unchecked" name="r2" id="r2" onmouseover="hover(2)" onclick="setRating(2)"> </span>
+                <span class="fa fa-star unchecked" name="r3" id="r3" onmouseover="hover(3)" onclick="setRating(3)"> </span>
+                <span class="fa fa-star unchecked" name="r4" id="r4" onmouseover="hover(4)" onclick="setRating(4)"> </span>
+                <span class="fa fa-star unchecked" name="r5" id="r5" onmouseover="hover(5)" onclick="setRating(5)"> </span>
+                <br />
+                <input type="text" id="shopRating" name="shopRating" style='display:none' value="{{shop['userRating']}}">  </input>
+                <input type="text" id="shop_username" name="shop_username" style='display:none' value="{{shop['shop_username']}}">  </input>
+                <input type="text" id="cust_username" name="cust_username" style='display:none' value="{{by}}">  </input>
+                <br />
+                <span id="averageRating"> {{ shop['avgRating'] }} </span>
+                <script>
+                    if({{shop['userRating']}} != -1){
+                            hover({{ shop['userRating'] }});
+                    }
+                </script>
+            </p>
+            </form>
+            <p>
+                <form action="/order_food" method="post">
+                    <input type="text" name="shop_username" style="display:none;" value={{ shop['shop_username'] }}  />
+                    <input type="text" name="cust_username" style="display:none;" value={{ by }}  />
+
+
+                    <input type="submit" value="Place order here" class="button"/>
+                </form></p>
+
+        {% endfor %}
+    </div>
+
+
+</div>
+
+</body>
+
+</html>
