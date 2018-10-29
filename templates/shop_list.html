@@ -44,8 +44,6 @@
 
 }
 
-
-
 #xyz{
   position: absolute;
   top:60px;
@@ -63,20 +61,34 @@
 </style>
 
 <script> 
-    function hover(index){
+    function hover(index, shop_username){
         for(var i=1;i <= 5; i++){
             if(i<=index){
-                document.getElementById("r" + i).setAttribute('class', "fa fa-star checked");
+                document.getElementById(shop_username + "r" + i).setAttribute('class', "fa fa-star checked");
             }
             else{
-                document.getElementById("r" + i).setAttribute('class',"fa fa-star unchecked");
+                document.getElementById(shop_username + "r" + i).setAttribute('class',"fa fa-star unchecked");
             }
         }
     }
-    function setRating(index){
-        alert(index)
-        document.ratings.shopRating.value = index;
-        document.ratings.submit();
+    function setRating(index, shop_username){
+        shopRatingBox =  document.getElementById(shop_username + "shopRating")
+        ratingCountBox = document.getElementById(shop_username + "ratingCount")
+        avgRatingSpan = document.getElementById(shop_username + "averageRating")
+        shopRating =  parseInt(shopRatingBox.value)
+        ratingCount = parseInt(ratingCountBox.value)
+        avgRating = (avgRatingSpan.innerHTML)
+        if(shopRating == -1){
+            avgRatingSpan.innerHTML = (avgRating*ratingCount + index)/(ratingCount + 1);
+            ratingCountBox.value = ratingCount + 1;
+        }
+        else{
+            avgRatingSpan.innerHTML = (avgRating*ratingCount - shopRating + index)/(ratingCount);
+        }
+        shopRatingBox.value = index;
+        shopForm = document.getElementById(shop_username + "ratings")
+        shopForm.submit();
+
     }
 </script>
 
@@ -95,23 +107,24 @@
             <h1>{{ shop['shop_name'] }}</h1>
             <p class="title">{{ shop['shop_address'] }}</p>
             <p class="title">Open Time : {{ shop['shop_openTime'] }} - {{ shop['shop_closeTime'] }} hrs</p>
-            <p class="title">Contact - {{ shop['mail'] }}</p>
+            <p class="title">Contact - {{ shop['shop_mail'] }}</p>
             <p class="rating">
-            <form  name="ratings" id="ratings" action="/setRating">
-                <span class="fa fa-star unchecked" name="r1" id="r1" onmouseover="hover(1)" onclick="setRating(1)"> </span>
-                <span class="fa fa-star unchecked" name="r2" id="r2" onmouseover="hover(2)" onclick="setRating(2)"> </span>
-                <span class="fa fa-star unchecked" name="r3" id="r3" onmouseover="hover(3)" onclick="setRating(3)"> </span>
-                <span class="fa fa-star unchecked" name="r4" id="r4" onmouseover="hover(4)" onclick="setRating(4)"> </span>
-                <span class="fa fa-star unchecked" name="r5" id="r5" onmouseover="hover(5)" onclick="setRating(5)"> </span>
+            <form  name="{{shop['shop_username']}}ratings" id="{{shop['shop_username']}}ratings" action="/setRating">
+                <span class="fa fa-star unchecked" name="{{shop['shop_username']}}r1" id="{{shop['shop_username']}}r1" onmouseover=hover(1,"{{shop['shop_username']}}") onclick=setRating(1,"{{shop['shop_username']}}")> </span>
+                <span class="fa fa-star unchecked" name="{{shop['shop_username']}}r2" id="{{shop['shop_username']}}r2" onmouseover=hover(2,"{{shop['shop_username']}}")  onclick=setRating(2,"{{shop['shop_username']}}")> </span>
+                <span class="fa fa-star unchecked" name="{{shop['shop_username']}}r3" id="{{shop['shop_username']}}r3" onmouseover=hover(3,"{{shop['shop_username']}}") onclick=setRating(3,"{{shop['shop_username']}}")> </span>
+                <span class="fa fa-star unchecked" name="{{shop['shop_username']}}r4" id="{{shop['shop_username']}}r4" onmouseover=hover(4,"{{shop['shop_username']}}") onclick=setRating(4,"{{shop['shop_username']}}")> </span>
+                <span class="fa fa-star unchecked" name="{{shop['shop_username']}}r5" id="{{shop['shop_username']}}r5" onmouseover=hover(5,"{{shop['shop_username']}}") onclick=setRating(5,"{{shop['shop_username']}}")> </span>
                 <br />
-                <input type="text" id="shopRating" name="shopRating" style='display:none' value="{{shop['userRating']}}">  </input>
+                <input type="text" id="{{shop['shop_username']}}shopRating" name="{{shop['shop_username']}}shopRating" style='display:none' value="{{shop['userRating']}}">  </input>
+                <input type="text" id="{{shop['shop_username']}}ratingCount" name="{{shop['shop_username']}}ratingCount" style='display:none'value={{shop['ratingCount']}}> </input>
                 <input type="text" id="shop_username" name="shop_username" style='display:none' value="{{shop['shop_username']}}">  </input>
                 <input type="text" id="cust_username" name="cust_username" style='display:none' value="{{by}}">  </input>
                 <br />
-                <span id="averageRating"> {{ shop['avgRating'] }} </span>
+                <span id="{{shop['shop_username']}}averageRating"> {{ shop['avgRating'] }} </span>
                 <script>
                     if({{shop['userRating']}} != -1){
-                            hover({{ shop['userRating'] }});
+                            hover({{ shop['userRating'] }}, "{{shop['shop_username']}}");
                     }
                 </script>
             </p>

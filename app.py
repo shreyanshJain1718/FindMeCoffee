@@ -5,7 +5,7 @@ import hashlib
 from bson.objectid import ObjectId
 import pytz
 from datetime import datetime
-
+import operator
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 db = myclient["coffeeHouse"]
@@ -27,7 +27,7 @@ def getAverageRating(shopId):
     if(ratingCount == 0):
         return -1
     else:
-        return round(totalRating/ratingCount, 2)
+        return (round(totalRating/ratingCount, 2), ratingCount)
 
 def hasher(password):
     password_hash = hashlib.md5(password.encode("utf-8")).hexdigest()
@@ -84,7 +84,7 @@ def setRating():
     print(data)
     shopId = data["shop_username"][0]
     custId = data["cust_username"][0]
-    rating = data["shopRating"][0]
+    rating = data[shopId+"shopRating"][0]
     db["ratings"].update_one({'shop_username':shopId, 'cust_username' : custId}, {'$set': {'rating' : rating }}, upsert=True)
     print("updated")
     return('',204)
@@ -152,7 +152,7 @@ def shop_log():
 
             return render_template("shop_main.html", name=x['shop_name'], shop_username=x['shop_username'], reviews=ratings, orders=orders, expense=total_cost, avg_review=round(avg_reviews,2) if avg_reviews!= -1 else avg_reviews)
 
-        elif x["shop_password"] != shopHashPassword:
+        elif x["shop_password"] != shopPasswordHash:
             return "<HTML><head><title>Error</title></head><body> <h1>Oops! Wrong password! </h1></body></HTML>"
     else:
         return "<HTML><head><title>Error</title></head><body> <h1>Account not found! </h1></body></HTML>"
@@ -219,7 +219,6 @@ def get_nearest():
     x = col.find()
     metaDataArray = []
     distanceArray = []
-    avgRatings = []
 
     for i in x:
         dist = abs(i["shop_location"]["shop_loc_latitude"]-currentLoc_lat) + abs(i["shop_location"]["shop_loc_longitude"]-currentLoc_long)
@@ -230,8 +229,10 @@ def get_nearest():
             rating = -1
         else:
             rating = rating['rating']
-        i["userRating"] = rating;
-        i["avgRating"] = getAverageRating(i["shop_username"])
+        i["userRating"] = rating
+        avgRatingData = getAverageRating(i["shop_username"])
+        i["avgRating"] = avgRatingData[0]
+        i["ratingCount"] = avgRatingData[1]
         metaDataArray.append(i)
         print("*** nearest")
         print(i)
@@ -261,12 +262,22 @@ def get_best():
         print(i)
         shop_rates[i['shop_username']] = i['count']
 
-    sorted_by_value = sorted(shop_rates.items(), key=lambda kv: kv[1])
+    sorted_by_value = sorted(shop_rates.items(), key=lambda kv: kv[1])[::-1]
     shops = []
     tel = db['shopschemas']
     for i in sorted_by_value:
         shop = tel.find_one({"shop_username": i[0]})
+        rating = db["ratings"]
+        rating = rating.find_one({"shop_username": i[0], "cust_username": username})
+        if(rating is None):
+            rating = -1
+        else:
+            rating = rating['rating']
+        shop["userRating"] = rating
+        shop["avgRating"] = getAverageRating(i[0])[0]
+        shop["ratingCount"] = getAverageRating(i[0])[1]
         shops.append(shop)
+
     return render_template("shop_list.html", shops=shops, by=username)
 
 
@@ -283,13 +294,27 @@ def get_diversity():
 
     for i in diversity:
         print(i)
-        food_length[i['shop_username']] = i['count']
+        food_length[i['shop_username'][0]] = i['count']
 
-    sorted_by_value = sorted(food_length.items(), key=lambda kv: kv[1])
-
+    sorted_by_value = list(food_length.items())
+    sorted_by_value.sort(key=operator.itemgetter(1))
+    sorted_by_value = sorted_by_value[::-1]
+    print("***sorted by value")
+    print(sorted_by_value)
+    print("*** index 1")
+    print(list(food_length.items()))
     tel = db['shopschemas']
     for i in sorted_by_value:
         shop = tel.find_one({"shop_username": i[0]})
+        rating = db["ratings"]
+        rating = rating.find_one({"shop_username": i[0], "cust_username": username})
+        if(rating is None):
+            rating = -1
+        else:
+            rating = rating['rating']
+        shop["userRating"] = rating
+        shop["avgRating"] = getAverageRating(i[0])[0]
+        shop["ratingCount"] = getAverageRating(i[0])[1]
         shops.append(shop)
 
     return render_template("shop_list.html", shops=shops, by=username)
@@ -344,7 +369,7 @@ def add_food():
             }
             z.append(mydict)
         col0.insert_many(z)
-    return redirect("/shoplogin.html")
+    return ('', 204)
 
 
 
@@ -391,8 +416,8 @@ def place_order():
                 "shop_username":shop_id,
                 "food_name": foods[i],
                 "amount": amount[i],
-                "transaction_date": datetime.now(pytz.utc)
-                "order_delivered" : "false"
+                "transaction_date": datetime.now(pytz.utc),
+                "order_delivered": "false"
             }
             print(mydict)
             add.append(mydict)

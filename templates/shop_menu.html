@@ -47,18 +47,18 @@
     <input type="number" name="price" placeholder="Price per unit" required="required" value="5"/>
           </div>
         <input type="text" name="shop_username" style="display:none;" value="{{ by }}"  />
-        <br><input type="submit" class="button" value="Submit"/>
+        <br /><button class="button" onclick="addMore()">Add item</button>
+        <br /><input type="submit" class="button" value="Submit"/>
 
 </form>
-    <br /><button class="button" onclick="addMore()">Add item</button>
 
 <br />
 <h4>Any particular specialities? Please enter here</h4>
     <form action="/add_food" method="post">
         <input type="text" name="shop_username" style="display:none;" value="{{ by }}"   />
         <input type="text" name="special" /><br /><br /><br />
-         <input type="text" name="price" placeholder="Price per unit" required="required" value="5"/>
-        <br><input type="submit" class="button" value="Submit special"/>
+        <input type="text" name="price" placeholder="Price per unit" required="required" value="5"/>
+        <br><input type="submit" class="button" value="Add special"/>
 </form>
 <script>
     function addMore(){
@@ -68,7 +68,7 @@
                 {% endfor %}
         </select>
 
-    <input type="text" name="price" placeholder="Price per unit" required="required" value="5"/>`
+    <input type="text" name="price" placeholder="Price per unit" required="required" value="50"/>`
     }
 </script>
 </body>
